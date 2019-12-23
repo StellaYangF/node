@@ -19,3 +19,5 @@ const buf3 = Buffer.allocUnsafe(10);
 console.log(buf3);
 // <Buffer f0 26 df 02 00 00 00 00 e8 3f>
 console.log(Buffer.alloc(5));
+
+const buf4 = Buffer.from()
