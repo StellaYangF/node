@@ -17,3 +17,7 @@ p.on('happy', who => console.log(`${ who } likes shopping.`));
 // dispatch in hand
 p.emit('happy', 'Tom');
 p.emit('happy', 'Tom');
+
+console.log(process.cwd());
+console.log(process.memoryUsage());
+console.log(process.chdir(""));
