@@ -55,5 +55,53 @@ console.log(buf3);
 ```
 
 ## 通过数组定义buffer
+```js
+const buf4 = Buffer.from([1,2,3]);
+console.log(buf4);
+// <Buffer 01 02 03>
+```
 
 ## 字符串创建
+```js
+// 创建包含UTF-8字节
+const buf5 = Buffer.from('中国');
+console.log(buf5);
+// <Buffer e4 b8 ad e5 9b bd>
+```
+
+# base64编码
+## 构成
+```js
+let base64Encoding = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+```
+## 规则
+8 bits = 6 bits
+
+## 中文 => base64
+```js
+// 中文 base64转换
+const buf6 = Buffer.from('杨');
+// <Buffer e6 9d a8>
+
+// 单独拿二进制字节
+console.log(0xe6.toString(2));
+console.log(0x9d.toString(2));
+console.log(0xa8.toString(2));
+// 11100110
+// 10011101
+// 10101000
+
+// binary3*8 => base64: 4*6
+// 111001101001110110101000 =>  二进制 8
+// 111001 101001 110110 101000 =>   base64 6
+// 00111001 00101001 00110110 00101000 base64 00 + 6
+console.log(parseInt('0111001', 2)); // 57
+console.log(parseInt('0101001', 2)); // 41
+console.log(parseInt('0110110', 2)); // 54
+console.log(parseInt('0101000', 2)); // 40
+
+console.log(base64Encoding[57] + base64Encoding[41] + base64Encoding[54] + base64Encoding[40]);
+// '杨' => 5p2o
+```
+
+# Buffer API
