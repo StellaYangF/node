@@ -75,21 +75,91 @@ const buff1 = Buffer.from('小');
 const buff2 = Buffer.from('杨');
 
 // ## 1.slice截取 
-
+console.log(buff1);
+// <Buffer e5 b0 8f>
+console.log(buff1.slice(1));
+// <Buffer b0 8f>
 
 // ## 2.isBuffer 是不是buffer 
-
+console.log(Buffer.isBuffer(buff1));
+// true
 
 // ## 3.toString (可以将buffer转成指定的编码)  
-
+// 默认是 utf8
+console.log(buff1.toString()); // 小
+// base64
+console.log(buff1.toString('base64')); // 5bCP
 
 // ## 4.length/ byteLength (字节的长度)  
 console.log(buf.byteLength); 
 console.log(buf.length); 
 // 6
 
-// ## 5.copy => concat 拼接方法
+// ## 5 重写的方法  拷贝的方法  拼接的方法
+const buff3 = Buffer.from('我是小可爱');
+console.log(buff3);
+buff3.write('不', 3, 6, 'utf8');
+console.log(buff3.toString());
+// 我不小可爱
 
+// ## 6.copy => concat 拼接方法
+// ### buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])
+const buff1 = Buffer.from('小');
+const buff2 = Buffer.from('杨');
+let buff3 = Buffer.alloc(6);
+console.log(buff3);
+// <Buffer 00 00 00 00 00 00> 
+buff1.copy(buff3, 0);
+buff2.copy(buff3, 3);
+console.log(buff3.toString('base64'));
+// <Buffer e5 b0 8f e6 9d a8>
+// 实现 
+Buffer.prototype.copy = function (targetBuffer, targetStart, sourceStart = 0, sourceEnd = this.length) {
+  while (sourceStart < sourceEnd) {
+    targetBuffer[targetStart++]  = this[sourceStart++];
+  }
+}
 
-// ## 6.indexOf => split方法
+// ### Buffer.concat(list[, totalLength])
+const buff1 = Buffer.from('小');
+const buff2 = Buffer.from('杨');
+// let buff3 = Buffer.concat([buff1, buff2], 6);
+// 实现
+Buffer.concat = function (list, totalLength = list.reduce((prev, next) => (prev + next.length),0)) {
+  let newBuff = Buffer.alloc(totalLength);
+  let offset = 0;
+  list.forEach(buf => {
+    buf.copy(newBuff, offset);
+    offset += buf.length;
+  });
+  return newBuff;
+}
+buff3 = Buffer.concat([buff1, buff2]);
+console.log(buff3.toString());
 
+// ## 7.indexOf => split方法
+// ### buf.indexOf(value[, byteOffset][, encoding])
+let buffer = Buffer.from('我是小可爱我是小可爱我是小可爱不');
+console.log(buffer.indexOf('爱', 24)); // 27 找不到就是 -1
+
+// 实现split方法
+let buffer = Buffer.from('我是小可爱我是小可爱我是小可爱不');
+
+Buffer.prototype.split = function (sep) {
+  const arr = [];
+  let start = 0;
+  let offset = 0;
+  sep = Buffer.from(sep);
+  while((offset = this.indexOf(sep, start)) != -1) {
+    arr.push(this.slice(start, offset));
+    start = offset + sep.length;
+  }
+  arr.push(this.slice(start));
+  return arr;
+}
+
+buffer.split('爱').forEach(buf => console.log(buf.toString()));
+// 我
+// 你我
+// 你我
+// 你

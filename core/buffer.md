@@ -13,9 +13,11 @@ Buffer 的大小在创建时确定，且无法更改。
 一个字节最大值十进制数是255(2**8-1)
 
 # System
-0b 2进制
-0x 16进制
-0o 8进制
+- Binary system: 0b 2进制
+- Hexadecimal system:0x 16进制
+- Octonary system:0o 8进制
+- Decimal system: 0 10进制
+
 
 ## to decimal system 转10进制
 将任意进制字符串转换为十进制
@@ -25,7 +27,7 @@ parseInt("77", 8); // 63 8进制转10进制
 parseInt("e7", 16); //231 16进制转10进制
 ```
 
-## to binary/ octonary/ system转其他进制
+## to binary/ octonary/ hexadecimal system转其他进制
 将10进制转换为其它进制字符串
 ```js
 (3).toString(2) // "11" 十进制转2进制
@@ -105,3 +107,110 @@ console.log(base64Encoding[57] + base64Encoding[41] + base64Encoding[54] + base6
 ```
 
 # Buffer API
+## 1.slice截取 
+```js
+console.log(buff1);
+// <Buffer e5 b0 8f>
+console.log(buff1.slice(1));
+// <Buffer b0 8f>
+```
+
+## 2.isBuffer 是不是buffer 
+```js
+console.log(Buffer.isBuffer(buff1));
+// true
+```
+
+## 3.toString (可以将buffer转成指定的编码)  
+```js
+// 默认是 utf8
+console.log(buff1.toString()); // 小
+// base64
+console.log(buff1.toString('base64')); // 5bCP
+```
+
+## 4.length (字节的长度)  
+`buf.toString([encoding[, start[, end]]])`
+```js
+console.log(buf.byteLength); 
+console.log(buf.length); 
+// 6
+```
+
+## 5.重写的方法  拷贝的方法  拼接的方法
+`buf.write(string[, offset[, length]][, encoding])`
+```js
+const buff3 = Buffer.from('我来自中国');
+console.log(buff3);
+buff3.write('他', 0, 3, 'utf8');
+console.log(buff3.toString());
+```
+
+## 6.copy => concat 拼接方法
+### buf.copy(target[, targetStart[, sourceStart[, sourceEnd]]])
+```js
+const buff1 = Buffer.from('小');
+const buff2 = Buffer.from('杨');
+let buff3 = Buffer.alloc(6);
+console.log(buff3);
+// <Buffer 00 00 00 00 00 00> 
+buff1.copy(buff3, 0);
+buff2.copy(buff3, 3);
+console.log(buff3.toString('base64'));
+// <Buffer e5 b0 8f e6 9d a8>
+// 实现 
+Buffer.prototype.copy = function (targetBuffer, targetStart, sourceStart = 0, sourceEnd = this.length) {
+  while (sourceStart < sourceEnd) {
+    targetBuffer[targetStart++]  = this[sourceStart++];
+  }
+}
+```
+### Buffer.concat(list[, totalLength])
+```js
+const buff1 = Buffer.from('小');
+const buff2 = Buffer.from('杨');
+// let buff3 = Buffer.concat([buff1, buff2], 6);
+// 实现
+Buffer.concat = function (list, totalLength = list.reduce((prev, next) => (prev + next.length),0)) {
+  let newBuff = Buffer.alloc(totalLength);
+  let offset = 0;
+  list.forEach(buf => {
+    buf.copy(newBuff, offset);
+    offset += buf.length;
+  });
+  return newBuff;
+}
+buff3 = Buffer.concat([buff1, buff2]);
+console.log(buff3.toString());
+```
+
+## 7.indexOf => split方法
+### buf.indexOf(value[, byteOffset][, encoding])
+```js
+let buffer = Buffer.from('我爱你我爱你我爱你');
+console.log(buffer.indexOf('爱', 24)); // 12 找不到就是 -1
+```
+
+### 实现split方法
+```js
+let buffer = Buffer.from('我爱你我爱你我爱你');
+
+Buffer.prototype.split = function (sep) {
+  const arr = [];
+  let start = 0;
+  let offset = 0;
+  sep = Buffer.from(sep);
+  while((offset = this.indexOf(sep, start)) != -1) {
+    arr.push(this.slice(start, offset));
+    start = offset + sep.length;
+  }
+  arr.push(this.slice(start));
+  return arr;
+}
+
+buffer.split('爱').forEach(buf => console.log(buf.toString()));
+// 我
+// 你我
+// 你我
+// 你
+```
